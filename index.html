@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>자바 메소드 카드 서랍</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B222C;
+    --ink-soft:#2A3342;
+    --paper:#F3ECDD;
+    --paper-dim:#E8DFC9;
+    --stamp-red:#A23B3B;
+    --stamp-red-dim:#8A3030;
+    --leaf-green:#3E7C59;
+    --gold:#C9A34E;
+    --text-dark:#241E17;
+    --text-mute:#6B6357;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 10%, #232C3A 0%, transparent 45%),
+      var(--ink);
+    color:var(--paper);
+    font-family:'Noto Sans KR', sans-serif;
+    padding:28px 20px 60px;
+    min-height:100vh;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:34px;
+    margin:0 0 6px;
+    letter-spacing:-.01em;
+  }
+  .sub{color:#9CA6B5;font-size:14px;line-height:1.6;}
+
+  .toolbar{
+    display:flex;gap:10px;flex-wrap:wrap;
+    margin:22px 0 16px;
+    align-items:center;
+  }
+  input[type="text"]{
+    flex:1;min-width:200px;
+    background:var(--ink-soft);
+    border:1px solid #3A4457;
+    color:var(--paper);
+    padding:11px 14px;
+    border-radius:3px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    outline:none;
+  }
+  input[type="text"]:focus{border-color:var(--gold);}
+  input[type="text"]::placeholder{color:#6B7688;}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px;}
+  .tab{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:6px 12px;
+    border:1px solid #3A4457;
+    border-radius:2px;
+    color:#9CA6B5;
+    cursor:pointer;
+    background:transparent;
+    transition:all .15s ease;
+  }
+  .tab:hover{border-color:var(--gold);color:var(--paper);}
+  .tab.active{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:var(--ink);
+    font-weight:600;
+  }
+
+  .drawer{display:flex;flex-direction:column;gap:10px;}
+
+  .card{
+    background:var(--paper);
+    border-radius:2px;
+    position:relative;
+    box-shadow:0 1px 0 rgba(0,0,0,.4), 0 8px 18px -10px rgba(0,0,0,.6);
+    overflow:hidden;
+    border-left:4px solid var(--stamp-red);
+  }
+  .card::before{
+    content:'';
+    position:absolute;left:14px;top:14px;
+    width:9px;height:9px;border-radius:50%;
+    background:var(--ink);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.5);
+  }
+  .card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px 14px 38px;
+    cursor:pointer;
+    gap:12px;
+  }
+  .card-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:15px;
+    color:var(--text-dark);
+  }
+  .card-cat{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.08em;
+    color:var(--stamp-red-dim);
+    text-transform:uppercase;
+    border:1px solid var(--stamp-red-dim);
+    padding:2px 6px;
+    border-radius:2px;
+    white-space:nowrap;
+  }
+  .card-right{display:flex;align-items:center;gap:10px;}
+  .chev{
+    color:var(--text-mute);
+    transition:transform .18s ease;
+    font-size:13px;
+  }
+  .card.open .chev{transform:rotate(90deg);}
+
+  .card-body{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .25s ease;
+    background:var(--paper-dim);
+  }
+  .card.open .card-body{max-height:600px;}
+  .card-body-inner{padding:4px 18px 18px 38px;}
+
+  .field-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.1em;
+    color:var(--leaf-green);
+    text-transform:uppercase;
+    margin:10px 0 4px;
+  }
+  .field-label:first-child{margin-top:2px;}
+  .desc{color:var(--text-dark);font-size:13.5px;line-height:1.6;}
+  pre{
+    background:var(--ink);
+    color:#DCE3EC;
+    padding:12px 14px;
+    border-radius:3px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    line-height:1.55;
+    overflow-x:auto;
+    margin:0;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .del{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--text-mute);
+    background:none;
+    border:1px solid #C9BEA0;
+    padding:4px 9px;
+    border-radius:2px;
+    cursor:pointer;
+    margin-top:12px;
+  }
+  .del:hover{border-color:var(--stamp-red);color:var(--stamp-red);}
+
+  .empty{
+    text-align:center;
+    padding:50px 20px;
+    color:#6B7688;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+
+  .add-card{
+    background:var(--ink-soft);
+    border:1px dashed #45516A;
+    border-radius:3px;
+    padding:18px;
+    margin-top:6px;
+  }
+  .add-card summary{
+    cursor:pointer;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--gold);
+    list-style:none;
+  }
+  .add-card summary::-webkit-details-marker{display:none;}
+  .add-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:14px;
+  }
+  .add-grid .full{grid-column:1/-1;}
+  label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.08em;
+    color:#9CA6B5;
+    text-transform:uppercase;
+    display:block;
+    margin-bottom:5px;
+  }
+  input[type="text"].field, textarea, select{
+    width:100%;
+    background:var(--ink);
+    border:1px solid #3A4457;
+    color:var(--paper);
+    padding:9px 10px;
+    border-radius:3px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    outline:none;
+  }
+  textarea{resize:vertical;min-height:60px;line-height:1.5;}
+  select{cursor:pointer;}
+  .save-btn{
+    margin-top:14px;
+    background:var(--leaf-green);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:3px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .save-btn:hover{background:#347049;}
+  .status{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:#6B7688;
+    margin-top:8px;
+    min-height:14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Personal Reference / Java</div>
+    <h1>메소드 카드 서랍</h1>
+    <div class="sub">클릭하면 펼쳐져요. 새로 배운 메소드는 아래 "+ 카드 추가"로 계속 쌓아가세요. 이 브라우저에 자동 저장됩니다.</div>
+  </header>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="검색... 예) charAt, StringBuilder">
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="drawer" id="drawer"></div>
+
+  <details class="add-card">
+    <summary>+ 새 카드 추가</summary>
+    <div class="add-grid">
+      <div class="full">
+        <label>메소드 / 문법 이름</label>
+        <input type="text" class="field" id="in-name" placeholder="예) Arrays.sort()">
+      </div>
+      <div>
+        <label>카테고리</label>
+        <select id="in-cat"></select>
+      </div>
+      <div>
+        <label>새 카테고리 (선택)</label>
+        <input type="text" class="field" id="in-cat-new" placeholder="직접 입력시 우선 적용">
+      </div>
+      <div class="full">
+        <label>설명</label>
+        <textarea id="in-desc" placeholder="어떤 역할을 하는지 한두 줄로"></textarea>
+      </div>
+      <div class="full">
+        <label>예제 코드</label>
+        <textarea id="in-example" placeholder="int[] arr = {3,1,2};&#10;Arrays.sort(arr);"></textarea>
+      </div>
+    </div>
+    <button class="save-btn" onclick="addCard()">카드 저장</button>
+    <div class="status" id="status"></div>
+  </details>
+</div>
+
+<script>
+const DEFAULT_CARDS = [
+  {id:'d1', cat:'문자열', name:'charAt(i)', desc:'문자열의 i번째(0부터 시작) 위치에 있는 문자 한 개를 char로 반환.', example:`String a = "apple";
+char c = a.charAt(1); // 'p'`},
+  {id:'d2', cat:'문자열', name:'toCharArray()', desc:'문자열 전체를 char 배열로 한 번에 변환. for-each와 함께 쓰면 간결.', example:`String a = "apple";
+for (char c : a.toCharArray()) {
+    System.out.println(c);
+}`},
+  {id:'d3', cat:'문자열', name:'substring(a, b)', desc:'인덱스 a부터 b 직전까지 잘라서 반환 (b는 포함 안 됨). substring(a) 하나만 쓰면 끝까지 자름.', example:`String s = "HelloWorld";
+s.substring(0, 5); // "Hello"
+s.substring(5);    // "World"`},
+  {id:'d15', cat:'문자열', name:'repeat(k)', desc:'문자열을 k번 그대로 반복해서 이어붙인 새 문자열을 반환. 반복문+StringBuilder로 직접 짤 필요 없이 한 줄로 끝남.', example:`String a = "ab";
+a.repeat(3); // "ababab"`},
+  {id:'d16', cat:'문자열', name:'contains(부분문자열)', desc:'문자열 A가 B 안에 연속된 순서 그대로 통째로 들어있는지 확인. 단순히 글자들이 각각 포함돼있는지가 아니라, 순서/연속성까지 체크함. boolean 반환.', example:`String b = "aabcc";
+b.contains("abc"); // true (연속으로 순서대로 있음)
+
+String c = "cab";
+c.contains("abc"); // false (글자는 있지만 순서가 다름)`},
+  {id:'d17', cat:'문자열', name:'equals()', desc:'두 String의 내용이 같은지 비교. String은 객체라서 ==로 비교하면 안 됨(메모리 주소 비교라 예상과 다르게 동작할 수 있음). int/char/boolean 같은 기본타입은 반대로 ==를 씀.', example:`String a = new String("hi");
+String b = new String("hi");
+a == b;        // false (다른 객체)
+a.equals(b);   // true (내용은 같음)
+
+ineq.equals(">"); // String 비교는 항상 이렇게`},
+  {id:'d4', cat:'문자/아스키', name:'Character.isUpperCase / isLowerCase', desc:'대문자/소문자 여부 판별. 직접 아스키값(65~90) 비교보다 안전하고 의도가 명확함.', example:`Character.isUpperCase('A'); // true
+Character.isLowerCase('a'); // true`},
+  {id:'d5', cat:'문자/아스키', name:'Character.toUpperCase / toLowerCase', desc:'대소문자 변환. (char)(c+32) 같은 매직넘버 계산보다 안전.', example:`Character.toUpperCase('a'); // 'A'
+Character.toLowerCase('A'); // 'a'`},
+  {id:'d6', cat:'StringBuilder', name:'new StringBuilder()', desc:'StringBuilder 객체를 새로 만드는 생성자 호출. new는 "만들어라"는 실행 명령이라 반드시 괄호 필요. 괄호 없이 new StringBuilder; 쓰면 에러.', example:`StringBuilder sb = new StringBuilder();       // 빈 상태로 시작
+StringBuilder sb2 = new StringBuilder("hi");  // 초기값 넣고 시작`},
+  {id:'d6b', cat:'StringBuilder', name:'append()', desc:'뒤에 값을 이어붙임. String과 달리 가변(mutable)이라 반복문에서 효율적. String에는 없는 메소드.', example:`StringBuilder sb = new StringBuilder();
+sb.append("hello").append(' ').append("world");
+String result = sb.toString();`},
+  {id:'d6c', cat:'StringBuilder', name:'toString()', desc:'StringBuilder를 최종 String으로 변환. 괄호 빠뜨리면(그냥 toString) 메소드 호출이 안 돼서 에러남. StringBuilder는 String과 다른 타입이라 그냥 대입 불가, 반드시 이 메소드로 변환해야 함.', example:`StringBuilder sb = new StringBuilder();
+sb.append("hi");
+String answer = sb.toString(); // "hi"
+// String answer = sb;  ❌ 타입 불일치, 에러`},
+  {id:'d7', cat:'입출력', name:'System.out.printf', desc:'서식 지정 출력. %d(정수) %f(실수) %s(문자열) %c(문자) %n(줄바꿈, OS별 자동처리).', example:`int a=3, b=5;
+System.out.printf("%d + %d = %d", a, b, a+b);`},
+  {id:'d8', cat:'제어문', name:'삼항연산자', desc:'조건 ? 참일때값 : 거짓일때값. 값 하나만 정해서 대입/리턴할 때 if-else보다 간결.', example:`int max = (a > b) ? a : b;`},
+  {id:'d9', cat:'제어문', name:'switch문', desc:'하나의 변수를 여러 고정값과 비교할 때 if-else보다 깔끔. break 빠뜨리면 다음 case까지 실행되니 주의.', example:`switch(ch) {
+    case 'w': answer += 1; break;
+    case 's': answer -= 1; break;
+    default: break;
+}`},
+  {id:'d10', cat:'제어문', name:'for-each (:)', desc:'배열/리스트의 각 원소를 하나씩 꺼내 순회. 콜론(:)은 "in"의 의미. 인덱스 관리 불필요. 콜론 앞 타입은 콜론 뒤 배열 안 원소의 타입과 똑같이 맞춰야 함.', example:`// char 배열 순회
+for (char ch : control.toCharArray()) {
+    // ch 하나씩 사용
+}
+
+// int 배열/리스트 순회
+int[] index_list = {2, 5, 7};
+for (int idx : index_list) {
+    System.out.println(idx);
+}`},
+  {id:'d11', cat:'형변환', name:'String.valueOf()', desc:'int, char, boolean 등 뭐든 String으로 변환. int를 문자열로 이어붙일 때 맨 앞에 붙이면 의도대로 문자열 연결이 됨.', example:`int a = 3, b = 5;
+String s = String.valueOf(a) + String.valueOf(b); // "35"
+// 또는: "" + a + b  (반드시 "" 를 맨 앞에!)`},
+  {id:'d12', cat:'형변환', name:'Integer.parseInt()', desc:'숫자로만 이루어진 String을 int로 변환. 숫자가 아닌 문자가 섞이면 NumberFormatException 발생. int는 최대 약 21억까지만 담김.', example:`int result = Integer.parseInt("35"); // 35
+Integer.parseInt("3a5"); // ❌ 에러`},
+  {id:'d14', cat:'형변환', name:'Long.parseLong()', desc:'Integer.parseInt()의 사촌격. String을 long으로 변환. int 범위(약 21억)를 넘어갈 수 있는 큰 수를 다룰 때 사용. 문자열 이어붙이기 문제(숫자 합치기 등)에서 자주 씀.', example:`long num = Long.parseLong("99999999"); // int 범위 넘어가도 안전
+// int result = (int) num;  필요하면 다시 int로 형변환`},
+  {id:'d13', cat:'문자/아스키', name:"char + char 연산", desc:"작은따옴표(')는 문자열이 아니라 char(숫자처럼 취급됨). char끼리 +하면 아스키값 숫자 덧셈이 됨. String이 하나라도 섞이면 그때부터 이어붙이기로 동작.", example:`'a' + 'b';        // 195 (97+98, 숫자 덧셈)
+"a" + "b";        // "ab" (문자열 이어붙이기)
+"a" + 'b';        // "ab" (String 있으면 이어붙이기 우선)
+int x = a + b + ""; // ❌ 숫자 먼저 계산되고 그 뒤 "" 붙음
+String s = "" + a + b; // ✅ 맨 앞에 "" 둬야 문자열 이어붙이기로 동작`},
+  {id:'d18', cat:'문자열', name:'String.join(구분자, 배열)', desc:'배열/리스트의 문자열들을 구분자를 사이사이에 넣어 한 번에 이어붙임. 반복문+append를 통째로 대체. 도중에 조건 분기가 필요하면 못 쓰고 반복문으로 직접 짜야 함.', example:`String[] arr = {"a","b","c"};
+String.join("", arr);   // "abc"
+String.join(",", arr);  // "a,b,c"
+String.join(" ", arr);  // "a b c"`},
+  {id:'d19', cat:'자료구조', name:'new ArrayList<>()', desc:'크기가 자유롭게 늘어나는 리스트. 배열과 달리 크기를 미리 정할 필요 없음. 단, int 같은 기본타입은 못 담고 포장 타입(Integer 등)을 써야 함. import java.util.ArrayList; 필요.', example:`import java.util.ArrayList;
+ArrayList<Integer> list = new ArrayList<>();`},
+  {id:'d20', cat:'자료구조', name:'list.add(값)', desc:'리스트 맨 뒤에 값 추가. 배열의 "새 원소 넣기"에 해당하지만, 배열과 달리 크기 제한 없이 계속 추가 가능.', example:`ArrayList<Integer> list = new ArrayList<>();
+list.add(5);
+list.add(50); // [5, 50]`},
+  {id:'d21', cat:'자료구조', name:'list.get(i)', desc:'i번째 값 꺼내기. 배열의 arr[i]와 똑같은 역할이지만, ArrayList는 대괄호 접근이 안 돼서 반드시 get() 메소드로 접근해야 함. 마지막 원소는 list.get(list.size()-1).', example:`list.get(0);              // 첫 번째 값
+list.get(list.size()-1); // 마지막 값`},
+  {id:'d22', cat:'자료구조', name:'list.size()', desc:'리스트에 들어있는 원소 개수. 배열의 arr.length에 대응. 괄호 있는 메소드라는 점 주의 (arr.length는 괄호 없음).', example:`list.size(); // 배열의 arr.length 역할`},
+  {id:'d23', cat:'자료구조', name:'list.isEmpty()', desc:'리스트가 비어있는지(원소 0개인지) 확인. list.size()==0과 같은 뜻이지만 더 명확함. 대소문자 주의: IsEmpty() 아니라 isEmpty()(소문자 i).', example:`if (list.isEmpty()) {
+    // 아직 아무것도 없을 때 처리
+}`},
+  {id:'d24', cat:'자료구조', name:'list.remove(i)', desc:'i번째 위치의 원소를 리스트에서 제거. 마지막 원소를 지우려면 list.remove(list.size()-1).', example:`list.remove(list.size()-1); // 마지막 원소 제거`},
+  {id:'d25', cat:'배열', name:'2차원 배열 .length', desc:'arr.length는 바깥 배열(행)의 개수, arr[i].length는 i번째 행에 들어있는 원소 개수. 각 행마다 길이가 다를 수 있어서(가변 배열), 안쪽 반복문은 arr[i].length로 매번 새로 확인해야 함.', example:`int[][] arr = {{1,2,3},{4,5},{6,7,8,9}};
+arr.length;     // 3 (행 개수)
+arr[0].length;  // 3
+arr[1].length;  // 2 (행마다 다를 수 있음)
+
+for(int i=0;i<arr.length;i++){
+    for(int j=0;j<arr[i].length;j++){ ... }
+}`},
+  {id:'d26', cat:'배열', name:'swap (값 맞바꾸기)', desc:'배열 두 위치의 값을 서로 바꾸려면 임시 변수(temp)에 먼저 하나를 백업해둬야 함. 순서 중요: 백업 → 덮어쓰기 → 백업한 값 넣기. 순서가 틀리면 원래 값을 잃어버림.', example:`int temp = arr[a];  // 1. 먼저 arr[a]를 백업
+arr[a] = arr[b];     // 2. arr[a]를 arr[b]값으로
+arr[b] = temp;       // 3. arr[b]를 백업해둔 값으로`},
+  {id:'d27', cat:'제어문', name:'while / 무한루프', desc:'"몇 번 반복할지" 미리 모르고 "조건을 만족할 때까지" 반복할 때 for 대신 사용. for(;;)는 조건 없이 무한 반복(내부에서 break로 직접 탈출 조건 처리).', example:`while (n != 1) {
+    if (n % 2 == 0) n = n/2;
+    else n = 3*n+1;
+}
+
+// 또는 무한루프 + break
+for (;;) {
+    if (조건) break;
+}`},
+  {id:'d28', cat:'개념', name:'콜라츠 추측 (Collatz)', desc:'"어떤 자연수든 짝수면 2로 나누고 홀수면 3배+1을 계속하면 결국 1에 도달한다"는 미해결 수학 추측. 코딩테스트에선 "조건별 분기 + 반복" 연습용으로 자주 출제됨. n이 커질 수 있어 long 사용 권장.', example:`long n = 시작값;
+int count = 0;
+while (n != 1) {
+    if (n % 2 == 0) n /= 2;
+    else n = 3*n + 1;
+    count++;
+}`},
+  {id:'d29', cat:'문자열', name:'substring 잘라서 바로 숫자 변환', desc:'문자열의 특정 구간만 잘라내서(substring) 바로 정수로 바꾸는(parseInt) 조합 패턴. "문자열 배열에서 각 원소의 일부만 잘라 숫자로 검사"하는 문제에 자주 씀. substring(s, s+l)은 s부터 길이 l만큼 자르는 것.', example:`String myStr = "0123456789";
+int s = 5, l = 5;
+// s번째부터 길이 l만큼 잘라서 바로 숫자로 변환
+int num = Integer.parseInt(myStr.substring(s, s + l));
+// myStr.substring(5, 10) = "56789" → num = 56789`},
+  {id:'d30', cat:'배열', name:'Arrays.sort(배열)', desc:'배열을 오름차순으로 정렬. 숫자면 크기순, 문자열이면 사전순. import java.util.Arrays; 필요.', example:`import java.util.Arrays;
+String[] arr = {"banana","apple","a"};
+Arrays.sort(arr);
+// ["a", "apple", "banana"] 사전순 정렬됨
+
+int[] nums = {5,2,8,1};
+Arrays.sort(nums);
+// [1,2,5,8]`},
+  {id:'d31', cat:'문자열', name:'endsWith(suffix) / startsWith(prefix)', desc:'endsWith는 문자열이 특정 접미사로 끝나는지, startsWith는 특정 접두사로 시작하는지 확인 (boolean). contains()는 "어디든 포함"만 확인하므로 위치(끝/시작)를 정확히 봐야 할 땐 이 메소드들을 써야 함.', example:`"banana".contains("ban");    // true (중간 포함이라도 true, 위치 무관)
+"banana".endsWith("ban");    // false (끝이 "ban"이 아님, 실제 끝은 "ana")
+"banana".startsWith("ban");  // true (맨 앞이 "ban")`},
+  {id:'d32', cat:'문자열', name:'new StringBuilder(str).reverse()', desc:'문자열을 통째로 뒤집을 때 사용. String 자체엔 reverse가 없어서, StringBuilder로 감싼 뒤 reverse()하고 다시 toString()으로 String 변환. "구간만 뒤집기" 문제는 앞부분+뒤집은 가운데+뒷부분을 substring으로 나눠 조립.', example:`String s = "hello";
+String reversed = new StringBuilder(s).reverse().toString();
+// "olleh"
+
+// 구간만 뒤집기 틀: 앞부분 + 가운데(뒤집음) + 뒷부분
+String front = s.substring(0, i);
+String mid = new StringBuilder(s.substring(i, j)).reverse().toString();
+String back = s.substring(j);
+String result = front + mid + back;`},
+  {id:'d33', cat:'StringBuilder', name:'deleteCharAt(i)', desc:'StringBuilder에서 i번째 문자 하나를 삭제. 삭제하면 뒤쪽 글자들이 한 칸씩 당겨짐(인덱스가 바뀜) 주의! 여러 인덱스를 한 번에 지워야 하면 밀림 문제 때문에 이 메소드 대신 아래 "표시 후 재조립" 패턴을 쓰는 게 안전함.', example:`StringBuilder sb = new StringBuilder("abcde");
+sb.deleteCharAt(1); // 'b' 삭제
+// 결과: "acde"
+// 주의: c,d,e가 각각 한 칸씩 인덱스가 당겨짐 (2→1, 3→2, 4→3)`},
+  {id:'d34', cat:'문자열', name:'여러 인덱스 한 번에 삭제 (표시 후 재조립 패턴)', desc:'문자열에서 특정 인덱스 여러 개를 동시에 지워야 할 때, 하나씩 바로 지우면 뒤쪽 인덱스가 밀려서 꼬임. 대신 "지울 자리"를 boolean 배열에 표시만 해두고, 끝에서 처음부터 훑으며 표시 안 된 것만 새로 이어붙이면 안전함.', example:`boolean[] toDelete = new boolean[my_string.length()];
+for (int idx : indices) {
+    toDelete[idx] = true; // 지울 자리만 표시
+}
+
+StringBuilder sb = new StringBuilder();
+for (int i = 0; i < my_string.length(); i++) {
+    if (!toDelete[i]) {          // 표시 없는 것만
+        sb.append(my_string.charAt(i));
+    }
+}
+return sb.toString();`},
+  {id:'d35', cat:'배열', name:'Arrays.copyOfRange(배열, from, to)', desc:'배열의 from부터 to 직전까지(to 미포함) 잘라서 새 배열로 반환. String의 substring(a,b)와 규칙이 완전히 같음(끝 인덱스 미포함). 끝까지 포함하려면 to에 +1.', example:`import java.util.Arrays;
+int[] arr = {0,1,2,3,4,5};
+Arrays.copyOfRange(arr, 1, 4); // [1, 2, 3] (4는 미포함)
+
+String[] s = {"a","b","c","d","e"};
+Arrays.copyOfRange(s, 1, 4);  // ["b","c","d"]`},
+  {id:'d36', cat:'배열', name:'Arrays.copyOf(배열, 새길이)', desc:'배열을 처음부터 새길이만큼 잘라서 반환. 원래보다 길게 지정하면 나머지는 0(또는 null)으로 채워짐. "구간"이 아니라 "앞에서부터 몇 개"일 때 씀.', example:`int[] arr = {1,2,3,4,5};
+Arrays.copyOf(arr, 3); // [1, 2, 3]
+Arrays.copyOf(arr, 8); // [1, 2, 3, 4, 5, 0, 0, 0]`},
+  {id:'d37', cat:'배열', name:'Arrays.toString(배열)', desc:'배열을 [1, 2, 3] 같은 읽기 좋은 문자열로 변환. 배열을 그냥 System.out.println()하면 주소값(예: [I@1b6d3586)이 나오므로, 배열 내용을 눈으로 확인하려면 반드시 이 메소드를 거쳐야 함.', example:`int[] arr = {3,1,4,1,5};
+System.out.println(arr);               // [I@1b6d3586 (쓸모없음)
+System.out.println(Arrays.toString(arr)); // [3, 1, 4, 1, 5]`},
+  {id:'d38', cat:'배열', name:'Arrays.equals(배열1, 배열2)', desc:'두 배열의 내용이 완전히 같은지 비교. 배열은 ==로 비교하면 안 됨(참조 비교라서 내용 같아도 false). String의 equals()와 같은 이유, 배열 버전이라고 생각하면 됨.', example:`int[] a1 = {1,2,3};
+int[] a2 = {1,2,3};
+a1 == a2;              // false (서로 다른 객체)
+Arrays.equals(a1, a2); // true (내용이 같음)`},
+  {id:'d39', cat:'배열', name:'Arrays.fill(배열, 값)', desc:'배열의 모든 칸을 지정한 값 하나로 채움. 배열을 특정 값으로 초기화할 때 씀.', example:`int[] arr = new int[5];
+Arrays.fill(arr, 7);
+// [7, 7, 7, 7, 7]`},
+  {id:'d40', cat:'배열', name:'Arrays.asList(배열) / Arrays.stream(배열)', desc:'asList는 배열을 List처럼 다루게 감싸줌(예: Collections.reverse와 조합해서 배열 뒤집기). stream은 배열을 스트림으로 변환해서 스트림 API 체이닝에 사용. 다만 스트림 남용은 가독성/성능 면에서 오히려 안 좋을 수 있으니 단순 반복문으로 충분한 문제엔 굳이 안 써도 됨.', example:`import java.util.Collections;
+String[] arr = {"a","b","c"};
+Collections.reverse(Arrays.asList(arr)); // arr 자체가 뒤집힘: [c,b,a]
+
+Arrays.stream(new int[]{1,2,3}).sum(); // 6`},
+  {id:'d41', cat:'Math', name:'Math.max(a,b) / Math.min(a,b)', desc:'두 값 중 큰 값/작은 값 반환. 삼항연산자(a>b?a:b)로 직접 쓰는 것보다 짧고 의도가 명확함.', example:`Math.max(3, 7); // 7
+Math.min(3, 7); // 3`},
+  {id:'d42', cat:'Math', name:'Math.abs(x)', desc:'절댓값 반환. 음수를 양수로 바꿀 때 씀 (부호 상관없이 크기만 필요할 때).', example:`Math.abs(-5); // 5
+Math.abs(5);  // 5`},
+  {id:'d43', cat:'Math', name:'Math.pow(a,b)', desc:'a의 b제곱을 반환. 결과는 double 타입이라 int로 쓰려면 형변환 필요.', example:`Math.pow(2, 10); // 1024.0 (double)
+int result = (int) Math.pow(2, 10); // 1024`},
+  {id:'d44', cat:'Math', name:'Math.sqrt(x)', desc:'제곱근(루트) 반환. 소수 판별 등에서 "루트 x까지만 확인하면 된다" 최적화할 때 자주 씀.', example:`Math.sqrt(16); // 4.0
+Math.sqrt(2);  // 1.4142135623730951`},
+  {id:'d45', cat:'Math', name:'Math.round(x) / Math.floor(x) / Math.ceil(x)', desc:'round는 반올림(결과 long), floor는 내림(버림, 결과 double), ceil은 올림(결과 double). (int)로 형변환하는 것과 round는 다름: (int)는 그냥 소수점을 버리는 것(음수에서 0쪽으로), round는 진짜 반올림.', example:`Math.round(3.5); // 4 (반올림)
+Math.round(3.4); // 3
+Math.floor(3.9); // 3.0 (내림)
+Math.ceil(3.1);  // 4.0 (올림)
+(int) 3.9;       // 3 (형변환은 그냥 버림, round와 다름)`},
+  {id:'d46', cat:'Math', name:'Math.random()', desc:'0.0 이상 1.0 미만의 임의의 double 값을 반환. 특정 범위의 정수 난수를 만들 때는 공식을 곱셈/덧셈으로 조합해서 씀.', example:`Math.random(); // 0.0 ~ 1.0 미만 double
+
+// 1~6 사이 정수 난수 (주사위)
+int dice = (int)(Math.random() * 6) + 1;`},
+  {id:'d47', cat:'Stream', name:'IntStream.range() / rangeClosed()', desc:'정수 범위를 스트림으로 생성. range는 끝 미포함, rangeClosed는 끝 포함 (substring/copyOfRange와 같은 "끝 미포함" 규칙). import java.util.stream.IntStream; 필요.', example:`import java.util.stream.IntStream;
+IntStream.range(0, 5);        // 0,1,2,3,4 (5 미포함)
+IntStream.rangeClosed(0, 5);  // 0,1,2,3,4,5 (5 포함)`},
+  {id:'d48', cat:'Stream', name:'IntStream .map() / .filter() / .sum()', desc:'map은 각 값을 변환, filter는 조건에 맞는 값만 남김, sum은 다 더함. 체이닝(연쇄 호출)해서 "반복문 하나"를 한 줄로 표현. 단순 집계/필터링엔 간결하지만, 복잡한 로직에 억지로 쓰면 가독성/성능이 오히려 나빠짐(순서 보장 안 되는 경우도 있어 주의).', example:`// 0~4를 각각 제곱해서 합
+int sum = IntStream.range(0, 5)
+                    .map(x -> x * x)
+                    .sum(); // 30
+
+// 1~100 중 짝수만 합
+int evenSum = IntStream.rangeClosed(1, 100)
+                        .filter(x -> x % 2 == 0)
+                        .sum();`},
+  {id:'d49', cat:'Stream', name:'Arrays.stream(배열) → IntStream 변환', desc:'이미 있는 배열을 스트림으로 바꿔서 집계/필터링에 활용. Arrays 카테고리의 Arrays.stream()과 같은 것, IntStream 관점에서 다시 정리.', example:`int[] arr = {1,2,3,4,5};
+int total = Arrays.stream(arr).sum(); // 15
+int max = Arrays.stream(arr).max().getAsInt(); // 5`},
+  {id:'d50', cat:'Stream', name:'반복문 vs 스트림, 언제 뭘 쓰나', desc:'단순 합계/평균/최대최소/필터링은 스트림이 간결해서 좋음. 하지만 순서가 중요하거나 조건 분기가 복잡한 로직은 반복문이 훨씬 명확하고 안전함(스트림의 Map 기반 연산 등은 순서 보장이 안 되는 경우가 있어 위험). "짧다"가 곧 "좋은 코드"는 아니며, 읽는 사람이 이해하기 쉬운 쪽을 우선해야 함.', example:`// 좋은 예: 단순 합계 - 스트림이 간결
+int sum = IntStream.rangeClosed(1, 100).sum();
+
+// 나쁜 예: 복잡한 분기 로직을 억지로 스트림 하나로 압축
+// → 차라리 for문 + if문으로 명확하게 짜는 게 나음`},
+  {id:'d51', cat:'문자열', name:'split(구분자)', desc:'문자열을 구분자 기준으로 잘라서 여러 조각으로 이루어진 배열(String[])로 만듦. join()의 정반대 개념(문자열→배열). 구분자는 정규표현식으로 해석되므로 ".", "|", "*" 같은 특수기호를 구분자로 쓸 땐 주의 필요(그냥 문자는 문제없음). 구분자가 문자열 끝에 있으면 마지막에 빈 문자열("")이 배열에 포함될 수 있음.', example:`String str = "a,b,c";
+str.split(","); // ["a", "b", "c"]
+
+String s = "axbxcxdx";
+s.split("x"); // ["a","b","c","d",""] (끝에 빈 문자열 주의)`},
+  {id:'d52', cat:'문자열', name:'빈 문자열 확인 (equals("") / isEmpty())', desc:'문자열이 비어있는지(길이 0) 확인. split() 결과에 섞여 나오는 빈 문자열을 걸러낼 때 자주 씀.', example:`String s = "";
+s.equals("");  // true
+s.isEmpty();   // true (더 명확한 표현)
+
+// split 결과에서 빈 문자열 걸러내기
+for (String piece : arr) {
+    if (!piece.isEmpty()) {  // 비어있지 않은 것만
+        list.add(piece);
+    }
+}`},
+  {id:'d53', cat:'문자열', name:'join() vs split() 짝 정리', desc:'join은 배열→문자열(이어붙이기), split은 문자열→배열(쪼개기). 서로 정반대 방향의 메소드라 세트로 기억하면 헷갈리지 않음.', example:`String[] arr = {"a","b","c"};
+String joined = String.join(",", arr); // "a,b,c"  (배열→문자열)
+
+String str = "a,b,c";
+String[] split = str.split(",");        // ["a","b","c"]  (문자열→배열)`},
+  {id:'d54', cat:'문자열', name:'indexOf(찾을 문자열)', desc:'문자열 안에서 특정 문자열이 몇 번째 인덱스에서 시작하는지 찾음. 못 찾으면 -1 리턴. contains()는 있는지 없는지(boolean)만 알려주지만, indexOf()는 "몇 번째에 있는지"까지 알려줌. 두 번째 인자로 검색 시작 위치를 지정하면 여러 번 등장할 때 다음 위치도 찾을 수 있음.', example:`String str = "hello world";
+str.indexOf("world");   // 6 (시작 인덱스)
+str.indexOf("xyz");     // -1 (없음)
+
+// != -1 이면 "포함한다"는 뜻 (contains와 사실상 같은 효과)
+if (str.indexOf("world") != -1) { ... }
+
+// 두 번째 인자로 다음 위치부터 검색
+String s = "banana";
+s.indexOf("a");     // 1 (첫 번째 a)
+s.indexOf("a", 2);  // 3 (인덱스 2부터 찾기 시작)`},
+  {id:'d55', cat:'문자열', name:'lastIndexOf(찾을 문자열)', desc:'indexOf()와 반대로, 문자열이 마지막으로 등장하는 위치를 찾음. pat이 여러 번 등장할 때 "가장 긴"/"가장 뒤쪽" 조건이 붙은 문제에서 필요.', example:`String str = "banana";
+str.indexOf("a");      // 1 (첫 번째 a)
+str.lastIndexOf("a");  // 5 (마지막 a)
+
+// "pat으로 끝나는 가장 긴 부분 문자열" 구하기
+int idx = myString.lastIndexOf(pat);
+String answer = myString.substring(0, idx + pat.length());`},
+  {id:'d56', cat:'문자열', name:'trim()', desc:'문자열의 맨 앞과 맨 뒤에 붙은 공백만 제거. 중간에 있는 공백은 절대 안 건드림. 사용자 입력값 앞뒤 공백 정리용으로 자주 씀.', example:`String s = "  hello   world  ";
+s.trim(); // "hello   world" (양 끝만 제거, 중간 공백은 그대로)`},
+  {id:'d57', cat:'문자열', name:'split(" +") — 연속 공백 기준 분리', desc:'split()의 인자는 정규표현식이므로, "공백 1개 이상 연속"같은 패턴 조건도 넣을 수 있음. +는 정규표현식에서 "바로 앞의 것이 1개 이상 반복"이라는 뜻. 단, 문자열이 공백으로 시작하면 맨 앞에 빈 문자열이 남을 수 있어 trim()과 같이 써야 완전히 깔끔해짐.', example:`"a  b   c".split(" ");   // ["a","","b","","","c"] (공백 하나씩만 기준이라 빈 문자열 생김)
+"a  b   c".split(" +");  // ["a","b","c"] (연속 공백을 하나로 취급)
+
+// 맨 앞 공백까지 있을 때는 trim()과 조합
+"  a  b  ".trim().split(" +"); // ["a","b"]`},
+  {id:'d58', cat:'문자열', name:'replaceAll(정규식, 대체값) vs replace(문자, 대체값)', desc:'replace()는 문자/문자열을 있는 그대로 찾아 바꿈(정규식 아님). replaceAll()은 정규표현식 패턴으로 찾아 바꿈(더 강력하지만 특수기호 주의 필요). 연속 공백을 하나로 압축하거나, 공백을 통째로 제거할 때 씀.', example:`String s = "  hello   world  ";
+s.replaceAll(" +", " "); // "hello world" (연속 공백을 공백 1개로 압축, 양끝은 안 지워짐)
+s.replace(" ", "");       // "helloworld" (모든 공백을 완전히 제거)`},
+  {id:'d59', cat:'날짜/시간', name:'LocalDate', desc:'년/월/일 같은 날짜를 다루는 전용 클래스. int[] 배열로 날짜를 표현하면 인덱스 번호로 년/월/일을 구분해야 해서 헷갈리기 쉬운데, LocalDate는 의미가 명확한 메소드로 값을 다루고 날짜 비교·계산 기능이 기본 제공됨. import java.time.LocalDate; 필요.', example:`import java.time.LocalDate;
+
+LocalDate date = LocalDate.of(2024, 3, 15); // 2024년 3월 15일
+date.getYear();        // 2024
+date.getMonthValue();  // 3
+date.getDayOfMonth();  // 15
+
+LocalDate d1 = LocalDate.of(2024, 3, 15);
+LocalDate d2 = LocalDate.of(2024, 5, 1);
+d1.isBefore(d2); // true
+d1.isAfter(d2);  // false
+d1.isEqual(d2);  // false
+
+date.plusDays(10);   // 10일 후
+date.plusMonths(1);  // 1달 후
+date.getDayOfWeek(); // 무슨 요일인지`},
+];
+
+const CATS_ORDER = ['전체','입출력','문자/아스키','문자열','StringBuilder','제어문','형변환','자료구조','배열','Math','Stream','날짜/시간','개념'];
+
+async function loadCards(){
+  try{
+    const res = await window.storage.get('java-method-cards', false);
+    if(res && res.value){
+      return JSON.parse(res.value);
+    }
+  }catch(e){ /* key not found yet */ }
+  return DEFAULT_CARDS;
+}
+
+async function saveCards(cards){
+  try{
+    await window.storage.set('java-method-cards', JSON.stringify(cards), false);
+  }catch(e){
+    console.error('저장 실패', e);
+  }
+}
+
+let cards = [];
+let activeCat = '전체';
+let openId = null;
+
+function uniqueCats(){
+  const set = new Set(cards.map(c=>c.cat));
+  const extra = [...set].filter(c=>!CATS_ORDER.includes(c));
+  return [...CATS_ORDER, ...extra];
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  uniqueCats().forEach(cat=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (cat===activeCat ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = ()=>{ activeCat = cat; render(); };
+    tabsEl.appendChild(btn);
+  });
+  const catSelect = document.getElementById('in-cat');
+  catSelect.innerHTML = uniqueCats().filter(c=>c!=='전체').map(c=>`<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(s){ return escapeHtml(s); }
+
+function renderDrawer(){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const drawer = document.getElementById('drawer');
+  let list = cards.filter(c=>{
+    const matchCat = activeCat==='전체' || c.cat===activeCat;
+    const matchQuery = !q || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q);
+    return matchCat && matchQuery;
+  });
+
+  if(list.length===0){
+    drawer.innerHTML = `<div class="empty">해당하는 카드가 없어요. 아래에서 새로 추가해보세요.</div>`;
+    return;
+  }
+
+  drawer.innerHTML = list.map(c=>`
+    <div class="card ${openId===c.id ? 'open':''}" data-id="${c.id}">
+      <div class="card-head" onclick="toggleCard('${c.id}')">
+        <div class="card-title">${escapeHtml(c.name)}</div>
+        <div class="card-right">
+          <span class="card-cat">${escapeHtml(c.cat)}</span>
+          <span class="chev">▶</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-body-inner">
+          <div class="field-label">설명</div>
+          <div class="desc">${escapeHtml(c.desc)}</div>
+          <div class="field-label">예제</div>
+          <pre>${escapeHtml(c.example)}</pre>
+          <button class="del" onclick="event.stopPropagation(); deleteCard('${c.id}')">이 카드 삭제</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function render(){
+  renderTabs();
+  renderDrawer();
+}
+
+function toggleCard(id){
+  openId = openId===id ? null : id;
+  renderDrawer();
+}
+
+async function deleteCard(id){
+  cards = cards.filter(c=>c.id!==id);
+  await saveCards(cards);
+  render();
+}
+
+async function addCard(){
+  const name = document.getElementById('in-name').value.trim();
+  const desc = document.getElementById('in-desc').value.trim();
+  const example = document.getElementById('in-example').value.trim();
+  const catNew = document.getElementById('in-cat-new').value.trim();
+  const catSelect = document.getElementById('in-cat').value;
+  const statusEl = document.getElementById('status');
+
+  if(!name){
+    statusEl.textContent = '메소드 이름은 필수예요.';
+    statusEl.style.color = '#A23B3B';
+    return;
+  }
+
+  const cat = catNew || catSelect || '기타';
+  const newCard = {
+    id: 'c' + Date.now(),
+    cat, name,
+    desc: desc || '(설명 없음)',
+    example: example || '(예제 없음)'
+  };
+  cards.unshift(newCard);
+  await saveCards(cards);
+
+  document.getElementById('in-name').value='';
+  document.getElementById('in-desc').value='';
+  document.getElementById('in-example').value='';
+  document.getElementById('in-cat-new').value='';
+
+  statusEl.style.color = '#3E7C59';
+  statusEl.textContent = '저장됐어요 ✓';
+  setTimeout(()=>{ statusEl.textContent=''; }, 2000);
+
+  activeCat = '전체';
+  openId = newCard.id;
+  render();
+}
+
+document.getElementById('search').addEventListener('input', renderDrawer);
+
+(async function init(){
+  cards = await loadCards();
+  render();
+})();
+</script>
+</body>
+</html>
