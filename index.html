@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>자바 메소드 카드 서랍</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="자주 쓰는 Java 메소드와 코딩테스트 예제를 검색하고 나만의 카드로 저장하는 학습 노트입니다.">
+<meta name="theme-color" content="#1B222C">
+<title>자바 메소드 서랍 | 예제로 찾는 Java 문법</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -31,6 +34,9 @@
   }
   .wrap{max-width:920px;margin:0 auto;}
 
+  .skip-link{position:absolute;left:-9999px;top:8px;background:var(--gold);color:var(--ink);padding:8px 12px;z-index:10;}
+  .skip-link:focus{left:8px;}
+
   header{margin-bottom:28px;}
   .eyebrow{
     font-family:'IBM Plex Mono', monospace;
@@ -48,12 +54,22 @@
     letter-spacing:-.01em;
   }
   .sub{color:#9CA6B5;font-size:14px;line-height:1.6;}
+  .progress-note{
+    margin-top:16px;padding:14px 16px;border:1px solid #3A4457;border-radius:4px;
+    background:rgba(42,51,66,.72);color:#D5DBE4;font-size:13px;line-height:1.65;
+  }
+  .progress-note strong{color:var(--gold);}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+  .stat{padding:5px 9px;border:1px solid #3A4457;border-radius:999px;color:#B9C2CF;font:11px 'IBM Plex Mono',monospace;}
 
   .toolbar{
     display:flex;gap:10px;flex-wrap:wrap;
     margin:22px 0 16px;
     align-items:center;
   }
+  .search-wrap{flex:1;min-width:200px;width:100%;box-sizing:border-box;}
+  .search-wrap input[type="text"]{width:100%;box-sizing:border-box;}
+  .search-help{display:block;margin-top:7px;color:#8994A4;font-size:11px;line-height:1.5;}
   input[type="text"]{
     flex:1;min-width:200px;
     background:var(--ink-soft);
@@ -106,6 +122,7 @@
     box-shadow:inset 0 1px 2px rgba(0,0,0,.5);
   }
   .card-head{
+    width:100%;border:0;background:transparent;text-align:left;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -113,6 +130,7 @@
     cursor:pointer;
     gap:12px;
   }
+  .card-head:focus-visible,.tab:focus-visible,.save-btn:focus-visible,.del:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
   .card-title{
     font-family:'IBM Plex Mono', monospace;
     font-weight:600;
@@ -139,12 +157,10 @@
   .card.open .chev{transform:rotate(90deg);}
 
   .card-body{
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .25s ease;
+    display:none;
     background:var(--paper-dim);
   }
-  .card.open .card-body{max-height:600px;}
+  .card.open .card-body{display:block;}
   .card-body-inner{padding:4px 18px 18px 38px;}
 
   .field-label{
@@ -182,6 +198,10 @@
     margin-top:12px;
   }
   .del:hover{border-color:var(--stamp-red);color:var(--stamp-red);}
+  .card-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+  .card-actions .del{margin-top:0;}
+  .copy-btn{font:11px 'IBM Plex Mono',monospace;color:var(--leaf-green);background:none;border:1px solid #AAB99F;padding:4px 9px;border-radius:2px;cursor:pointer;}
+  .copy-btn:hover{border-color:var(--leaf-green);}
 
   .empty{
     text-align:center;
@@ -255,23 +275,47 @@
     margin-top:8px;
     min-height:14px;
   }
+  .results{color:#AEB7C5;font:11px 'IBM Plex Mono',monospace;margin:-10px 0 12px;min-height:17px;}
+  .utility{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;}
+  .utility button,.import-label{background:transparent;border:1px solid #45516A;color:#B9C2CF;padding:8px 11px;border-radius:3px;font:11px 'IBM Plex Mono',monospace;cursor:pointer;}
+  .utility button:hover,.import-label:hover{border-color:var(--gold);color:var(--paper);}
+  #import-file{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+  .ad-slot{margin:28px 0 12px;min-height:90px;border:1px dashed #45516A;display:grid;place-items:center;color:#6B7688;font:11px 'IBM Plex Mono',monospace;text-align:center;padding:16px;}
+  footer{text-align:center;color:#7F8998;font-size:12px;line-height:1.7;margin-top:24px;}
+  @media (max-width:600px){
+    body{padding:20px 14px 40px}h1{font-size:28px}.add-grid{grid-template-columns:1fr}
+    .toolbar{margin-bottom:12px}.search-wrap{min-width:100%}
+    .tabs{flex-wrap:nowrap;overflow-x:auto;margin-left:-14px;margin-right:-14px;padding:0 14px 10px;scrollbar-width:thin}
+    .tab{flex:0 0 auto;min-height:40px}
+    .card-head{padding:15px 12px 15px 32px;align-items:flex-start}.card-body-inner{padding:4px 12px 18px 32px}
+    .card-right{gap:6px}.card-title{font-size:14px;word-break:break-word}.card-cat{font-size:9px}
+    pre{font-size:12px;white-space:pre;word-break:normal}.progress-note{padding:12px 14px}
+  }
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#drawer">카드 목록으로 건너뛰기</a>
 <div class="wrap">
   <header>
     <div class="eyebrow">Personal Reference / Java</div>
     <h1>메소드 카드 서랍</h1>
-    <div class="sub">클릭하면 펼쳐져요. 새로 배운 메소드는 아래 "+ 카드 추가"로 계속 쌓아가세요. 이 브라우저에 자동 저장됩니다.</div>
+    <div class="sub">프로그래머스 문제를 풀다 막혔을 때, 필요한 Java 문법을 빠르게 찾아 예제로 복습하는 개인 학습 노트입니다.</div>
+    <div class="progress-note"><strong>현재 학습 단계 · 기초 문제 완료, 입문 문제 풀이 중</strong><br>카드 이름과 설명을 먼저 확인한 뒤 예제의 값을 바꿔 실행하고, 반환값과 원본 데이터가 어떻게 달라지는지 확인해 보세요.</div>
+    <div class="stats" aria-live="polite"><span class="stat" id="card-count"></span><span class="stat" id="category-count"></span></div>
   </header>
 
   <div class="toolbar">
-    <input type="text" id="search" placeholder="검색... 예) charAt, StringBuilder">
+    <div class="search-wrap">
+      <input type="text" id="search" aria-label="메소드 카드 검색" aria-describedby="search-help" placeholder="메소드·문제 상황 검색 (예: 문자열 자르기, 정렬)">
+      <span class="search-help" id="search-help">이름뿐 아니라 설명, 예제 코드, 카테고리에서도 찾을 수 있어요.</span>
+    </div>
   </div>
 
-  <div class="tabs" id="tabs"></div>
+  <div class="tabs" id="tabs" aria-label="카테고리 필터"></div>
+  <div class="results" id="results" role="status" aria-live="polite"></div>
 
-  <div class="drawer" id="drawer"></div>
+  <main class="drawer" id="drawer"></main>
 
   <details class="add-card">
     <summary>+ 새 카드 추가</summary>
@@ -298,8 +342,16 @@
       </div>
     </div>
     <button class="save-btn" onclick="addCard()">카드 저장</button>
-    <div class="status" id="status"></div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
   </details>
+  <div class="utility" aria-label="데이터 관리">
+    <button type="button" onclick="exportCards()">카드 백업</button>
+    <label class="import-label" for="import-file">백업 불러오기</label>
+    <input id="import-file" type="file" accept="application/json">
+    <button type="button" onclick="resetCards()">기본 카드로 초기화</button>
+  </div>
+  <aside class="ad-slot" aria-label="향후 광고가 표시될 영역">광고 영역 · 실제 광고 스크립트는 아직 연결하지 않았습니다.</aside>
+  <footer>Java 메소드 서랍 · 데이터는 현재 브라우저에만 저장됩니다.</footer>
 </div>
 
 <script>
@@ -362,7 +414,7 @@ String s = String.valueOf(a) + String.valueOf(b); // "35"
 // 또는: "" + a + b  (반드시 "" 를 맨 앞에!)`},
   {id:'d12', cat:'형변환', name:'Integer.parseInt()', desc:'숫자로만 이루어진 String을 int로 변환. 숫자가 아닌 문자가 섞이면 NumberFormatException 발생. int는 최대 약 21억까지만 담김.', example:`int result = Integer.parseInt("35"); // 35
 Integer.parseInt("3a5"); // ❌ 에러`},
-  {id:'d14', cat:'형변환', name:'Long.parseLong()', desc:'Integer.parseInt()의 사촌격. String을 long으로 변환. int 범위(약 21억)를 넘어갈 수 있는 큰 수를 다룰 때 사용. 문자열 이어붙이기 문제(숫자 합치기 등)에서 자주 씀.', example:`long num = Long.parseLong("99999999"); // int 범위 넘어가도 안전
+  {id:'d14', cat:'형변환', name:'Long.parseLong()', desc:'Integer.parseInt()의 사촌격. String을 long으로 변환. int 범위(약 21억)를 넘어갈 수 있는 큰 수를 다룰 때 사용. 문자열 이어붙이기 문제(숫자 합치기 등)에서 자주 씀.', example:`long num = Long.parseLong("9999999999"); // int 범위를 넘는 값
 // int result = (int) num;  필요하면 다시 int로 형변환`},
   {id:'d13', cat:'문자/아스키', name:"char + char 연산", desc:"작은따옴표(')는 문자열이 아니라 char(숫자처럼 취급됨). char끼리 +하면 아스키값 숫자 덧셈이 됨. String이 하나라도 섞이면 그때부터 이어붙이기로 동작.", example:`'a' + 'b';        // 195 (97+98, 숫자 덧셈)
 "a" + "b";        // "ab" (문자열 이어붙이기)
@@ -514,11 +566,12 @@ int sum = IntStream.rangeClosed(1, 100).sum();
 
 // 나쁜 예: 복잡한 분기 로직을 억지로 스트림 하나로 압축
 // → 차라리 for문 + if문으로 명확하게 짜는 게 나음`},
-  {id:'d51', cat:'문자열', name:'split(구분자)', desc:'문자열을 구분자 기준으로 잘라서 여러 조각으로 이루어진 배열(String[])로 만듦. join()의 정반대 개념(문자열→배열). 구분자는 정규표현식으로 해석되므로 ".", "|", "*" 같은 특수기호를 구분자로 쓸 땐 주의 필요(그냥 문자는 문제없음). 구분자가 문자열 끝에 있으면 마지막에 빈 문자열("")이 배열에 포함될 수 있음.', example:`String str = "a,b,c";
+  {id:'d51', cat:'문자열', name:'split(구분자)', desc:'문자열을 구분자 기준으로 잘라서 여러 조각으로 이루어진 배열(String[])로 만듦. join()의 정반대 개념(문자열→배열). 구분자는 정규표현식으로 해석되므로 ".", "|", "*" 같은 특수기호를 구분자로 쓸 땐 주의 필요. 기본 split은 문자열 끝의 빈 조각을 버리며, 유지하려면 두 번째 인자에 -1을 전달.', example:`String str = "a,b,c";
 str.split(","); // ["a", "b", "c"]
 
 String s = "axbxcxdx";
-s.split("x"); // ["a","b","c","d",""] (끝에 빈 문자열 주의)`},
+s.split("x");     // ["a","b","c","d"] (끝의 빈 문자열 제거)
+s.split("x", -1); // ["a","b","c","d",""] (끝의 빈 문자열 유지)`},
   {id:'d52', cat:'문자열', name:'빈 문자열 확인 (equals("") / isEmpty())', desc:'문자열이 비어있는지(길이 0) 확인. split() 결과에 섞여 나오는 빈 문자열을 걸러낼 때 자주 씀.', example:`String s = "";
 s.equals("");  // true
 s.isEmpty();   // true (더 명확한 표현)
@@ -581,23 +634,40 @@ date.getDayOfWeek(); // 무슨 요일인지`},
 ];
 
 const CATS_ORDER = ['전체','입출력','문자/아스키','문자열','StringBuilder','제어문','형변환','자료구조','배열','Math','Stream','날짜/시간','개념'];
+const STORAGE_KEY = 'java-method-cards';
 
 async function loadCards(){
   try{
-    const res = await window.storage.get('java-method-cards', false);
-    if(res && res.value){
-      return JSON.parse(res.value);
-    }
-  }catch(e){ /* key not found yet */ }
-  return DEFAULT_CARDS;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved) return validateCards(JSON.parse(saved));
+  }catch(e){ console.warn('저장된 카드를 불러오지 못했습니다.', e); }
+  return [...DEFAULT_CARDS];
 }
 
 async function saveCards(cards){
   try{
-    await window.storage.set('java-method-cards', JSON.stringify(cards), false);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+    return true;
   }catch(e){
     console.error('저장 실패', e);
+    showStatus('브라우저 저장 공간을 확인해 주세요.', true);
+    return false;
   }
+}
+
+function validateCards(value){
+  if(!Array.isArray(value)) throw new Error('카드 목록 형식이 아닙니다.');
+  return value.map((card, index)=>{
+    if(!card || typeof card.name!=='string' || typeof card.cat!=='string') throw new Error(`${index + 1}번째 카드 형식이 올바르지 않습니다.`);
+    const safeId = String(card.id || '').replace(/[^a-zA-Z0-9_-]/g, '') || `import-${Date.now()}-${index}`;
+    return {id:safeId, cat:card.cat, name:card.name, desc:String(card.desc || ''), example:String(card.example || '')};
+  });
+}
+
+function showStatus(message, isError=false){
+  const statusEl = document.getElementById('status');
+  statusEl.style.color = isError ? '#D97575' : '#78B991';
+  statusEl.textContent = message;
 }
 
 let cards = [];
@@ -617,6 +687,8 @@ function renderTabs(){
     const btn = document.createElement('button');
     btn.className = 'tab' + (cat===activeCat ? ' active' : '');
     btn.textContent = cat;
+    btn.type = 'button';
+    btn.setAttribute('aria-pressed', String(cat===activeCat));
     btn.onclick = ()=>{ activeCat = cat; render(); };
     tabsEl.appendChild(btn);
   });
@@ -634,9 +706,15 @@ function renderDrawer(){
   const drawer = document.getElementById('drawer');
   let list = cards.filter(c=>{
     const matchCat = activeCat==='전체' || c.cat===activeCat;
-    const matchQuery = !q || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q);
+    const searchable = `${c.name} ${c.cat} ${c.desc} ${c.example}`.toLowerCase();
+    const matchQuery = !q || searchable.includes(q);
     return matchCat && matchQuery;
   });
+
+  const context = activeCat==='전체' ? '전체 카테고리' : activeCat;
+  document.getElementById('results').textContent = q
+    ? `${context}에서 “${q}” 검색 결과 ${list.length}개`
+    : `${context} · ${list.length}개`;
 
   if(list.length===0){
     drawer.innerHTML = `<div class="empty">해당하는 카드가 없어요. 아래에서 새로 추가해보세요.</div>`;
@@ -645,20 +723,23 @@ function renderDrawer(){
 
   drawer.innerHTML = list.map(c=>`
     <div class="card ${openId===c.id ? 'open':''}" data-id="${c.id}">
-      <div class="card-head" onclick="toggleCard('${c.id}')">
+      <button type="button" class="card-head" onclick="toggleCard('${c.id}')" aria-expanded="${openId===c.id}" aria-controls="body-${escapeAttr(c.id)}">
         <div class="card-title">${escapeHtml(c.name)}</div>
         <div class="card-right">
           <span class="card-cat">${escapeHtml(c.cat)}</span>
           <span class="chev">▶</span>
         </div>
-      </div>
-      <div class="card-body">
+      </button>
+      <div class="card-body" id="body-${escapeAttr(c.id)}">
         <div class="card-body-inner">
           <div class="field-label">설명</div>
           <div class="desc">${escapeHtml(c.desc)}</div>
           <div class="field-label">예제</div>
           <pre>${escapeHtml(c.example)}</pre>
-          <button class="del" onclick="event.stopPropagation(); deleteCard('${c.id}')">이 카드 삭제</button>
+          <div class="card-actions">
+            <button type="button" class="copy-btn" onclick="copyExample('${c.id}', this)">예제 복사</button>
+            <button type="button" class="del" onclick="deleteCard('${c.id}')">이 카드 삭제</button>
+          </div>
         </div>
       </div>
     </div>
@@ -668,6 +749,8 @@ function renderDrawer(){
 function render(){
   renderTabs();
   renderDrawer();
+  document.getElementById('card-count').textContent = `카드 ${cards.length}개`;
+  document.getElementById('category-count').textContent = `카테고리 ${new Set(cards.map(c=>c.cat)).size}개`;
 }
 
 function toggleCard(id){
@@ -675,7 +758,33 @@ function toggleCard(id){
   renderDrawer();
 }
 
+async function copyExample(id, button){
+  const card = cards.find(c=>c.id===id);
+  if(!card) return;
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(card.example);
+    }else{
+      const textarea = document.createElement('textarea');
+      textarea.value = card.example;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand('copy');
+      textarea.remove();
+      if(!copied) throw new Error('copy unavailable');
+    }
+    button.textContent = '복사 완료 ✓';
+    setTimeout(()=>{ button.textContent = '예제 복사'; }, 1600);
+  }catch(e){
+    showStatus('예제를 복사하지 못했어요. 브라우저 권한을 확인해 주세요.', true);
+  }
+}
+
 async function deleteCard(id){
+  if(!confirm('이 카드를 삭제할까요?')) return;
   cards = cards.filter(c=>c.id!==id);
   await saveCards(cards);
   render();
@@ -687,11 +796,8 @@ async function addCard(){
   const example = document.getElementById('in-example').value.trim();
   const catNew = document.getElementById('in-cat-new').value.trim();
   const catSelect = document.getElementById('in-cat').value;
-  const statusEl = document.getElementById('status');
-
   if(!name){
-    statusEl.textContent = '메소드 이름은 필수예요.';
-    statusEl.style.color = '#A23B3B';
+    showStatus('메소드 이름은 필수예요.', true);
     return;
   }
 
@@ -710,16 +816,46 @@ async function addCard(){
   document.getElementById('in-example').value='';
   document.getElementById('in-cat-new').value='';
 
-  statusEl.style.color = '#3E7C59';
-  statusEl.textContent = '저장됐어요 ✓';
-  setTimeout(()=>{ statusEl.textContent=''; }, 2000);
+  showStatus('저장됐어요 ✓');
+  setTimeout(()=>{ showStatus(''); }, 2000);
 
   activeCat = '전체';
   openId = newCard.id;
   render();
 }
 
+function exportCards(){
+  const blob = new Blob([JSON.stringify(cards, null, 2)], {type:'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `java-method-cards-${new Date().toISOString().slice(0,10)}.json`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+async function importCards(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  try{
+    cards = validateCards(JSON.parse(await file.text()));
+    await saveCards(cards);
+    activeCat = '전체'; openId = null; render();
+    showStatus(`${cards.length}개 카드를 불러왔어요.`);
+  }catch(e){
+    showStatus(`불러오기 실패: ${e.message}`, true);
+  }finally{ event.target.value = ''; }
+}
+
+async function resetCards(){
+  if(!confirm('직접 추가한 카드를 지우고 기본 카드로 되돌릴까요?')) return;
+  cards = [...DEFAULT_CARDS];
+  await saveCards(cards);
+  activeCat = '전체'; openId = null; render();
+  showStatus('기본 카드로 초기화했어요.');
+}
+
 document.getElementById('search').addEventListener('input', renderDrawer);
+document.getElementById('import-file').addEventListener('change', importCards);
 
 (async function init(){
   cards = await loadCards();
